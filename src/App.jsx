@@ -13,7 +13,8 @@ import {
   ClipboardList,
   Clock,
   BookOpen,
-  X
+  X,
+  Search
 } from 'lucide-react'
 
 function App() {
@@ -26,6 +27,16 @@ function App() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
 
+  // State pencarian
+const [search, setSearch] = useState('')
+
+  // Pencarian tugas berdasarkan judul
+  const filteredTasks = tasks.filter(task =>
+    (task.title || '')
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  )
+  // Menyimpan data tugas yang di masukkan pengguna
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -206,110 +217,136 @@ function App() {
 
           </div>
 
-          {/* List */}
-          <div className="space-y-3">
+          {/* Kolom Pencarian */}
+          <div className="relative mb-5">
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari nama tugas..."
+              className="w-full border border-slate-200 rounded-xl pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+
+          <p className="text-sm text-slate-500 mb-3">
+            Menampilkan {filteredTasks.length} dari {tasks.length} tugas
+          </p>
+
+      {/* List */}
+      <div className="space-y-3">
+
+        {filteredTasks.length === 0 ? (
+
+          <div className="text-center py-12 text-slate-400">
+
+            <ClipboardList
+              size={45}
+              className="mx-auto mb-3"
+            />
 
             {tasks.length === 0 ? (
-
-              <div className="text-center py-12 text-slate-400">
-
-                <ClipboardList
-                  size={45}
-                  className="mx-auto mb-3"
-                />
-
+              <>
                 <p>Belum ada tugas.</p>
-
                 <p className="text-sm">
                   Silakan tambahkan tugas pertama.
                 </p>
-
-              </div>
-
+              </>
             ) : (
+              <>
+                <p>Tugas tidak ditemukan.</p>
+                <p className="text-sm">
+                  Coba gunakan kata kunci lain.
+                </p>
+              </>
+            )}
 
-              tasks.map(task => (
+          </div>
 
-                <div
-                  key={task.id}
-                  className="border rounded-xl p-4 flex items-start justify-between gap-3"
+        ) : (
+
+          filteredTasks.map(task => (
+
+            <div
+              key={task.id}
+              className="border rounded-xl p-4 flex items-start justify-between gap-3"
+            >
+
+              <div className="flex items-start gap-3">
+
+                <button
+                  onClick={() => handleComplete(task)}
+                  className="mt-1"
+                  aria-label="Ubah status tugas"
                 >
+                  {task.completed ? (
+                    <CheckCircle2 className="text-green-500" />
+                  ) : (
+                    <Circle className="text-slate-400" />
+                  )}
+                </button>
 
-                  <div className="flex items-start gap-3">
+                <div>
 
-                    <button
-                      onClick={() => handleComplete(task)}
-                      className="mt-1"
-                      aria-label="Ubah status tugas"
-                    >
-                      {task.completed ? (
-                        <CheckCircle2
-                          className="text-green-500"
-                        />
-                      ) : (
-                        <Circle
-                          className="text-slate-400"
-                        />
-                      )}
-                    </button>
+                  <h3 className={`font-semibold ${
+                    task.completed
+                      ? 'line-through text-slate-400'
+                      : 'text-slate-800'
+                  }`}>
+                    {task.title}
+                  </h3>
 
-                    <div>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {task.description}
+                  </p>
 
-                      <h3 className={`font-semibold ${
-                        task.completed
-                          ? 'line-through text-slate-400'
-                          : 'text-slate-800'
-                      }`}>
-                        {task.title}
-                      </h3>
+                  <div className="flex flex-wrap gap-2 mt-2">
 
-                      <p className="text-sm text-slate-500 mt-1">
-                        {task.description}
-                      </p>
+                    <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg">
+                      {task.category}
+                    </span>
 
-                      <div className="flex flex-wrap gap-2 mt-2">
-
-                        <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg">
-                          {task.category}
-                        </span>
-
-                        <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">
-                          Deadline: {task.dueDate || '-'}
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                  <div className="flex gap-2">
-
-                    <button
-                      onClick={() => handleEdit(task)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                      aria-label="Edit tugas"
-                    >
-                      <Pencil size={18} />
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(task.id)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                      aria-label="Hapus tugas"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-lg">
+                      Deadline: {task.dueDate || '-'}
+                    </span>
 
                   </div>
 
                 </div>
 
-              ))
+              </div>
 
-            )}
+              <div className="flex gap-2">
 
-          </div>
+                <button
+                  onClick={() => handleEdit(task)}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                  aria-label="Edit tugas"
+                >
+                  <Pencil size={18} />
+                </button>
+
+                <button
+                  onClick={() => handleDelete(task.id)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  aria-label="Hapus tugas"
+                >
+                  <Trash2 size={18} />
+                </button>
+
+              </div>
+
+            </div>
+
+          ))
+
+        )}
+
+      </div>
 
         </section>
 
